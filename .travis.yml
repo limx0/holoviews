@@ -164,6 +164,7 @@ jobs:
         - pip install awscli
         - conda install -c conda-forge mpl_sample_data --no-deps
         - aws s3 sync s3://holoviews-doc-builds/$TRAVIS_BUILD_NUMBER ./
+        - git checkout -- ./doc
         - nbsite build --what=html --output=builtdocs
       after_success:
         - aws s3 sync ./builtdocs s3://${BUCKET}holoviews.org/
@@ -211,7 +212,7 @@ jobs:
       stage: pip_dev_package
       env: PYPI="https://test.pypi.org/legacy/" TRAVIS_NOCACHE=$TRAVIS_JOB_ID
       install:
-        - doit develop_install $CHANS_DEV -o unit_tests && pip uninstall -y holoviews
+        - travis_wait 20 doit develop_install $CHANS_DEV -o unit_tests && pip uninstall -y holoviews
         - doit pip_on_conda
         - doit ecosystem=pip package_build
       script: doit ecosystem=pip package_upload -u $TPPU -p $TPPP -r ${PYPI}
@@ -220,7 +221,7 @@ jobs:
       stage: pip_package
       env: PYPI="https://upload.pypi.org/legacy/" TRAVIS_NOCACHE=$TRAVIS_JOB_ID
       install:
-        - doit develop_install $CHANS_DEV -o unit_tests && pip uninstall -y holoviews
+        - travis_wait 20 doit develop_install $CHANS_DEV -o unit_tests && pip uninstall -y holoviews
         - doit pip_on_conda
         - doit ecosystem=pip package_build
       script: doit ecosystem=pip package_upload -u $PPU -p $PPP -r ${PYPI}
